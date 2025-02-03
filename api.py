@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 #import pandas as pd
 import pyarrow.parquet as pq
 import matplotlib.pylab as plt
-from db import create_table_from_excel
+from db import createTableFromParquet
 
 app = Flask(__name__)
 
@@ -49,8 +49,16 @@ def loadToDb():
     else:
         file_name = request.args['fileName']  
 
-    status = create_table_from_excel(file_name)    
+    status = createTableFromParquet(file_name)    
     return status
+
+@app.route("/CleanDb", methods=["POST"])
+def processDbData():
+    #Clean DataSet in Db
+    if 'fileName' not in request.get_json():
+        file_name = 'dados_sensores_5000.parquet'
+    else:
+        file_name = request.args['fileName']  
 
         
 if __name__ == "__main__":
