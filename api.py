@@ -21,8 +21,7 @@ def readFileSummary():
     #print(parquet_columns)
     # Read the first row (index 0)
     row = table.slice(0, 1)# df.iloc[0]  # Returns a Series
-    print('\n\nrow:')
-    #print(row)
+
     types = {}
     staticalData = {}
     for column in parquet_columns:
@@ -34,10 +33,6 @@ def readFileSummary():
                 "min": min(rowList),
                 "avarage": round(sum(rowList)/len(rowList),3)
             }
-
-    print(parquet_columns)
-    print(types)
-    print(staticalData)
 
     data = {
         "columns": parquet_columns,
