@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
-import pandas as pd
+#import pandas as pd
+import pyarrow.parquet as pq
 import matplotlib.pylab as plt
 from db import create_table_from_excel
 
@@ -12,19 +13,36 @@ def readFileSummary():
         file_name = 'dados_sensores_5000.parquet'
     else:
         file_name = request.args['fileName']   
-    df = pd.read_parquet(file_name)
+    #df = pd.read_parquet(file_name)
+    # Read the Parquet file
+    table = pq.read_table(file_name)
     # Get column names
-    parquet_columns = df.columns.tolist()
+    parquet_columns = table.schema.names #df.columns.tolist()
+    #print(parquet_columns)
     # Read the first row (index 0)
-    row = df.iloc[0]  # Returns a Series
-    print(row)
-    types = { }
+    row = table.slice(0, 1)# df.iloc[0]  # Returns a Series
+    print('\n\nrow:')
+    #print(row)
+    types = {}
+    staticalData = {}
     for column in parquet_columns:
-        types[column]=type(row[column]).__name__
+        types[column]= str(row.column(column).type)
+        if row.column(column).type == 'double': 
+            rowList = table.column(column).to_pylist() 
+            staticalData[column] = {
+                "max": max(rowList),
+                "min": min(rowList),
+                "avarage": round(sum(rowList)/len(rowList),3)
+            }
+
+    print(parquet_columns)
+    print(types)
+    print(staticalData)
 
     data = {
         "columns": parquet_columns,
-        "types": types
+        "types": types,
+        "staticalData": staticalData
     }
     return data
 
