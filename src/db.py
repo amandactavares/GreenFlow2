@@ -3,6 +3,7 @@ from pathlib import Path
 import pandas as pd
 import pyarrow.parquet as pq
 from pymongo import MongoClient
+from utils.clean import cleanDataSet
 
 # Configuração do banco de dados
 # MongoDB connection details
@@ -27,8 +28,7 @@ def createTableFromParquet(file_name):
     #df = pd.read_parquet(file_name)
 
     #Clean the DataSet
-
-
+    table = cleanDataSet(table,"pyarrow")
 
     chunks = []
     #num_rows = df.shape[0]  # Total number of rows
