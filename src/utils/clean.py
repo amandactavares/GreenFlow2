@@ -7,11 +7,8 @@ def cleanDataSet(table,dataSetFormat="pandas"):
 
     stringColumns = []
     for column in parquet_columns:
-        print(str(row.column(column).type))
         if str(row.column(column).type) == 'string':
             stringColumns.append(column)
-
-    print(stringColumns)
 
     # Convert the PyArrow Table to a Pandas DataFrame
     df = table.to_pandas()

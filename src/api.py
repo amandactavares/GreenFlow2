@@ -1,4 +1,13 @@
-from flask import Flask, jsonify, request
+import sys
+import os
+
+from flask import jsonify, request
+
+from fastapi import FastAPI, Depends
+from pydantic import BaseModel
+from typing import Optional
+import uvicorn
+
 #import pandas as pd
 import pyarrow.parquet as pq
 import pyarrow.compute as pc
@@ -7,21 +16,25 @@ import json
 from db import createTableFromParquet 
 from utils.clean import cleanDataSet
 
-app = Flask(__name__)
+# Add the parent directory to Python's module search path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-@app.route("/Summary", methods=["GET"])
-def readFileSummary():
+app = FastAPI()
+
+# Pydantic model for request body
+class ParquetFile(BaseModel):
+    file_name: Optional[str] = 'dados_sensores_5000.parquet'# This field is optional, default is 'dados_sensores_5000.parquet'
+
+@app.get("/Summary")
+def readFileSummary(parquetfile: ParquetFile = Depends()):
     #Carregar DataSet
-    if 'fileName' not in request.args:
-        file_name = 'dados_sensores_5000.parquet'
-    else:
-        file_name = request.args['fileName']   
-    #df = pd.read_parquet(file_name)
+    file_name = parquetfile.file_name    
+
     # Read the Parquet file
     table = pq.read_table(file_name)
     # Get column names
-    parquet_columns = table.schema.names #df.columns.tolist()
-    #print(parquet_columns)
+    parquet_columns = table.schema.names
+
     # Read the first row (index 0)
     row = table.slice(0, 1)# df.iloc[0]  # Returns a Series
 
@@ -44,29 +57,22 @@ def readFileSummary():
     }
     return data
 
-@app.route("/parquettodb", methods=["POST"])
-def loadToDb():
+@app.post("/parquettodb")
+def loadToDb(parquetfile: ParquetFile):
     #Carregar DataSet
-    if 'fileName' not in request.get_json():
-        file_name = 'dados_sensores_5000.parquet'
-    else:
-        file_name = request.args['fileName']  
+    file_name = parquetfile.file_name  
 
     status = createTableFromParquet(file_name)    
     return status
 
-@app.route("/cleanDataSet", methods=["POST"])
-def clean():
+@app.post("/cleanDataSet")
+def clean(parquetfile: ParquetFile):
     #Clean DataSet
-    params = request.get_json(silent=True)
-    if params is None or "fileName" not in params:
-        file_name = 'dados_sensores_5000.parquet'
-    else:
-        file_name = params.get("fileName")    
+
+    file_name = parquetfile.file_name    
 
     # Read the Parquet file
     table = pq.read_table(file_name)
-    print(table.num_rows)
 
     #clean procedure/function
     df = cleanDataSet(table)
@@ -74,31 +80,12 @@ def clean():
 
     # Convert DataFrame to dictionary
     df_dict = df.to_dict(orient='records')  # Each row becomes a dictionary
-
-    data = jsonify({
+    
+    return {
         "numRows": numRows,
         "dataSet": df_dict
-    })
-
-    return data  # Ensure JSON response
-
-    ######################## using only pyarrow complicates to much for now
-    # # Create masks for null values in each column
-    # null_masks = [pc.is_null(table[column]) for column in table.column_names]
-    # print(null_masks)
-
-    # # Combine the masks with 'pc.or_' (logical OR for any null in any column)
-    # combined_mask = null_masks[0]
-    # for mask in null_masks[1:]:
-    #     combined_mask = pc.or_(combined_mask, mask)
-
-    # # Invert the combined mask using `pc.invert()`
-    # inverted_mask = pc.invert(combined_mask)
-
-    # # Filter the table: Keep only rows without nulls (inverse of mask)
-    # filtered_table = table.filter(inverted_mask)
-    # print(filtered_table.num_rows)
-
+    }
         
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True) 
+    print("Python Path:", sys.path)  # Debugging line
+    uvicorn.run("src.api:app", host="0.0.0.0", port=5000, reload=True) 
