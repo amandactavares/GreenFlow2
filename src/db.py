@@ -4,11 +4,12 @@ import pandas as pd
 import pyarrow.parquet as pq
 from pymongo import MongoClient
 from utils.clean import cleanDataSet
+import os
 
 # Configuração do banco de dados
 # MongoDB connection details
 # replace localhost by the service name when migrating to Docker Containers
-MONGO_URI = "mongodb://localhost:27017/"
+MONGO_URI = os.environ.get("MONGO_URI") #"mongodb://localhost:27017/"
 DATABASE_NAME = "GreenFlow"
 #COLLECTION_NAME = "your_collection"
 

@@ -88,4 +88,4 @@ def clean(parquetfile: ParquetFile):
         
 if __name__ == "__main__":
     print("Python Path:", sys.path)  # Debugging line
-    uvicorn.run("src.api:app", host="0.0.0.0", port=5000, reload=True) 
+    uvicorn.run("src.api:app", host="0.0.0.0", port=8080, reload=True) 
