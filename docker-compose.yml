@@ -12,5 +12,5 @@ services:
     image: mongo:latest
     ports:
       - "27017:27017"
-    volumes: #cat /etc/mongod.conf | grep dbPath
-      - /var/lib/mongodb:/var/lib/mongodb
+    volumes: #cat /etc/mongod.conf | grep dbPath --folder that contains the mongodb data
+      - /var/lib/mongodb:/var/lib/mongodb # persist the data from the folder inside the container to the folder in the host (hostFolder:containerFolder)
