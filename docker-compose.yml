@@ -2,15 +2,15 @@ version: "3.6"
 services:
   api:
     build: .
+    environment:
+      MONGO_URI: mongodb://db:27017
     ports:
       - "8080:8080"
     depends_on:
       - db  
   db:
     image: mongo:latest
-    environment:
-      MONGO_URI: "mongodb://localhost:27017/"
     ports:
       - "27017:27017"
     volumes: #cat /etc/mongod.conf | grep dbPath
-      - ./data:/var/lib/mongodb
+      - /var/lib/mongodb:/var/lib/mongodb
