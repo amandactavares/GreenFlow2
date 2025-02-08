@@ -9,22 +9,24 @@ import plotly.express as px
 st.set_page_config(layout="wide")
 
 #Título
-st.title("Consumos Energia, Água e Emissões CO2")
+st.title("Consumos de Energia, Água e Emissões CO2")
 
-#Pedir Ficheiro Streamlite
-@st.cache_data
-def load_data(file):
-    data=pd.read_parquet(file)
-    return data
+with st.expander("Upload Ficheiro de Dados"):
+    #Pedir Ficheiro Streamlite
+    @st.cache_data
+    def load_data(file):
+        data=pd.read_parquet(file)
+        return data
 
-uploaded_file = st.file_uploader("Escolha um Ficheiro Parquet")
+    uploaded_file = st.file_uploader("Escolha um Ficheiro Parquet")
 
-if uploaded_file is None:
-    st.info("Escolha um Ficheiro")
-    st.stop()
+    if uploaded_file is None:
+        st.info("Escolha um Ficheiro")
+        st.stop()
 
 
-tab1, tab2, tab3 = st.tabs(["Global", "Empresa", "Setor"])
+#Criação dos Tabs
+tab1, tab2, tab3, tab4 = st.tabs(["Global", "Empresa", "Setor",  "Monitorização"])
 
 
 #Funções
@@ -100,12 +102,12 @@ def clean_data(file):
 
 #Gráfico Histograma
 def histograma(df):
-    colunas = ['co2_emissoes', 'agua_m3', 'energia_kwh']
+    colunas = ['energia_kwh', 'agua_m3', 'co2_emissoes' ]
     fig, axes = plt.subplots(1, 3, figsize=(15, 5))
     # Gerar histogramas e a linha de ajuste para cada coluna
     for i, coluna in enumerate(colunas):
         # Plotando o histograma
-        sns.histplot(df[coluna], kde=True, bins=20, color='skyblue', edgecolor='black', ax=axes[i])  
+        sns.histplot(df[coluna], kde=True, bins=20, color='indianred', edgecolor='black', ax=axes[i])  
         # Definindo o título e os rótulos
         axes[i].set_title(f"Histograma de {coluna}")
         axes[i].set_xlabel(coluna)
@@ -150,7 +152,6 @@ def consumo_total_empresa_min(df):
     st.write(f"Empresa com menor consumo de água: {menor_agua_emp} com {menor_agua_emp_val} m3")
     st.write(f"Empresa com menor emissão de CO₂: {menor_co2_emp} com {menor_co2_emp_val} em emissões de CO₂")
     return
-
 
 #Consumo Agregação Setor
 def consumo_total_setor(df):
@@ -225,7 +226,7 @@ def nr_empresas(df):
 
     #Plot Chart
     fig, axes = plt.subplots(figsize=(7,4))
-    axes.bar(nr_empresas['setor'], nr_empresas['empresas'], color="purple")
+    axes.bar(nr_empresas['setor'], nr_empresas['empresas'], color="indianred")
     axes.set_title("Nr de Empresas por Setor")
     axes.set_xlabel("Setor")
     axes.set_ylabel("# Empresas")
@@ -354,68 +355,188 @@ def bloxplot_setor(df):
     return
 
 
-#Chamar Funções
-
 #Limpar Dados Chamar Função
 df = clean_data(uploaded_file)
 
 
 with tab1:
-    #Analisar Dados
+    
     st.header("Análise Global dos Dados")
+    st.write("Visão Geral dos Dados Submetidos")
+   
+    col1 = st.columns(1)
+    st.subheader("Visualização dos Dados Introduzidos")
+    with st.expander("Vizualizar Dados"):
+        st.dataframe(df)
+
+
+    col2 = st.columns(1)
     st.subheader("Histograma de Consumos")
     #Histograma
-    df_hist = histograma(df)
+    histograma(df)
 
 
 with tab2:
+    
     st.header("Análise por Empresa")
+    st.write("Métricas e Análise dos Dados por Empresa")
+    
     col1, col2 = st.columns(2)
     #Análise Empresa
     with col1:
         st.subheader("Empresas com Maior Consumo Total")
-        df_emp_max = consumo_total_empresa_max(df)
+        consumo_total_empresa_max(df)
 
     with col2:
         st.subheader("Empresas com Menor Consumo Total")
-        df_emp_min = consumo_total_empresa_min(df)
+        consumo_total_empresa_min(df)
     
-    col3 = st.columns(1)
-    st.header("Número de Empresas por Setor")
-    df_nr_emp = nr_empresas(df)
+
+    col3, col4 = st.columns(2)
+    with col3:
+        st.subheader("Número de Empresas por Setor")
+        nr_empresas(df)
     
 
 with tab3:
 
     st.header("Análise por Sector")
+    st.write("Métricas e Análise dos Dados por Setor")
 
     col1 = st.columns(1)
-    
     st.subheader("Consumo Total por Setor")
-    df_setor = consumo_total_setor(df)
+    consumo_total_setor(df)
     
     col2, col3 = st.columns(2)
     with col2:
         st.subheader("Setor com Maior Consumo Total")
-        df_setor_max = cons_tot_setor_max(df)
+        cons_tot_setor_max(df)
 
     with col3:
         st.subheader("Setor com Menor Consumo Total")
-        df_setor_min = cons_tot_setor_min(df)
+        cons_tot_setor_min(df)
 
     col4 = st.columns(1)
     st.subheader("Boxplot por Setor")
-    df_boxplot = bloxplot_setor(df)
+    bloxplot_setor(df)
 
     col5 = st.columns(1)
-    st.subheader("Consumo do Setor Médio por Empresa ")
-    df_str_emp = consumo_setor_por_empresa(df)
+    st.subheader("Consumo Médio por Empresa por Setor")
+    consumo_setor_por_empresa(df)
 
     col6, col7 = st.columns(2)
     with col6:
         st.subheader("Setor com Maior Consumo Médio por Empresa")
-        df_setor_emp_max = cons_set_max(df)
+        cons_set_max(df)
 
     with col7:
         st.subheader("Setor com Menor Consumo Médio por Empresa")
-        df_setor_emp_min = cons_set_min(df)
+        cons_set_min(df)
+
+with tab4:
+    st.header("Monitorização de Empresas")
+    st.write("Espaço para Identificar Empresas com Consumo Anormal e/ou Acima da Média")
+    
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        #Dropdown Setor
+        dropdown_setor = df['setor'].unique().tolist()
+        dropdown_setor = ['Todos os Setores'] + dropdown_setor
+        setor_sel =st.selectbox("Setor", dropdown_setor)
+    
+    with col2:
+        #Dropdown Area
+        dropdown_area = ['Energia'] + ['Água'] + ['Emissões CO2']
+        area_sel =st.selectbox("Área de Consumo", dropdown_area)
+
+    with col3:
+        #Input Utilizador
+        percentil = st.number_input("Introduza Percentil (0-100)")
+        percentil = round(float(percentil), 2)
+        if percentil <0 or percentil > 100:
+            st.write("O Percentil Introduzido deve estar entre 0 e 100")
+
+
+    col4 = st.columns(1)
+    
+    st.subheader(f"Valores Estatísticos do Consumo de {area_sel} e Setor: {setor_sel} ")
+
+    #Filtrar Dataset mediante seleção do User
+    if setor_sel == 'Todos os Setores':
+        df_setor = df
+    else:
+        df_setor = df[df['setor'] == setor_sel]
+
+    #Calcular Valores estatísticos
+    average = df_setor[['energia_kwh', 'agua_m3', 'co2_emissoes']].mean()
+    val_min = df_setor[['energia_kwh', 'agua_m3', 'co2_emissoes']].min()
+    val_max = df_setor[['energia_kwh', 'agua_m3', 'co2_emissoes']].max()
+    percentils = df_setor[['energia_kwh', 'agua_m3', 'co2_emissoes']].quantile([0.25, 0.50, 0.75])
+
+    if area_sel == 'Emissões CO2':
+        average = average['co2_emissoes']
+        val_min = val_min['co2_emissoes']
+        val_max = val_max['co2_emissoes']
+        percentils = percentils['co2_emissoes']
+    elif area_sel  == "Água":
+        average = average['agua_m3']
+        val_min = val_min['agua_m3']
+        val_max = val_max['agua_m3']
+        percentils = percentils['agua_m3']
+    else:
+        average = average['energia_kwh']
+        val_min = val_min['energia_kwh']
+        val_max = val_max['energia_kwh']
+        percentils = percentils['energia_kwh']
+        
+
+    col5, col6 = st.columns(2)
+
+    with col5:
+        
+        st.markdown(f"**Average** = {round(average, 2)}")
+        st.markdown (f"**Valor Mínimo** = {round(val_min,2)}")
+        st.markdown (f"**Valor Máximo** = {round(val_max,2)}")
+        
+    
+    with col6:
+        st.markdown (f"**Percentil 25%** = {round(percentils[0.25],2)}")
+        st.markdown (f"**Percentil 50%** = {round(percentils[0.50],2)}")
+        st.markdown (f"**Percentil 75%** = {round(percentils[0.75],2)}")
+
+
+    col7 = st.columns(1)
+
+    st.subheader(f"Empresas no Percentil {percentil} de Consumo de {area_sel} , Relativo ao Setor: {setor_sel} ")
+
+    if area_sel == 'Emissões CO2':
+        valor_percentil = np.percentile(df_setor['co2_emissoes'], percentil)
+        obs_filtradas = df_setor[df_setor['co2_emissoes'] > valor_percentil]
+        obs_filtradas = obs_filtradas.sort_values(by='co2_emissoes', ascending=False)
+        nr_emp = len(obs_filtradas)
+        st.markdown(f"**Número de Empresas** = {nr_emp}")
+        st.markdown("**Lista de Empresas**")
+        st.write(obs_filtradas[['empresa', 'co2_emissoes']])
+        
+    elif area_sel  == "Água":
+        valor_percentil = np.percentile(df_setor['agua_m3'], percentil)
+        obs_filtradas = df_setor[df_setor['agua_m3'] > valor_percentil]
+        obs_filtradas = obs_filtradas.sort_values(by='agua_m3', ascending=False)
+        nr_emp = len(obs_filtradas)
+        st.markdown(f"**Número de Empresas** = {nr_emp}")
+        st.markdown("**Lista de Empresas**")
+        st.write(obs_filtradas[['empresa', 'agua_m3']])
+    else:
+        valor_percentil = np.percentile(df_setor['energia_kwh'], percentil)
+        obs_filtradas = df_setor[df_setor['energia_kwh'] > valor_percentil]
+        obs_filtradas = obs_filtradas.sort_values(by='energia_kwh', ascending=False)
+        nr_emp = len(obs_filtradas)
+        st.markdown(f"**Número de Empresas** = {nr_emp}")
+        st.markdown("**Lista de Empresas**")
+        st.write(obs_filtradas[['empresa', 'energia_kwh']])
+
+        
+
+        
+    
