@@ -399,7 +399,6 @@ with tab2:
     
 
 with tab3:
-
     st.header("Análise por Sector")
     st.write("Métricas e Análise dos Dados por Setor")
 
@@ -418,7 +417,92 @@ with tab3:
 
     col4 = st.columns(1)
     st.subheader("Boxplot por Setor")
-    bloxplot_setor(df)
+    
+    # Criar os boxplots
+    fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+    colunas = ['energia_kwh', 'agua_m3', 'co2_emissoes']
+    titulos = ['Energia (kWh)', 'Água (m³)', 'Emissões de CO₂']
+    
+    for i, coluna in enumerate(colunas):
+        sns.boxplot(data=df, x='setor', y=coluna, hue='setor', ax=axes[i], palette="Set2")
+        axes[i].set_title(f"Distribuição de {titulos[i]} por Setor")
+        axes[i].set_xlabel('Setor')
+        axes[i].set_ylabel(titulos[i])
+    
+    plt.tight_layout()
+    st.pyplot(fig)
+
+    # Adicionar métricas em tabelas
+    st.subheader("Métricas por Setor")
+
+    # Função para criar uma tabela formatada
+    def criar_tabela_metricas(df, coluna, titulo):
+        media = df.groupby('setor')[coluna].mean().apply(lambda x: f"{x:.2f}") #"{:.2f}".format(df.groupby('setor')[coluna].mean())
+        Q3 = df[coluna].quantile(0.75)
+        empresas_acima_Q3 = df[df[coluna] > Q3].groupby('setor')['empresa'].count()
+        
+        # Criar DataFrame para a tabela
+        tabela = pd.DataFrame({
+            'Setor': media.index,
+            'Média': media.values,
+            'Empresas Acima do 3º Quartil': empresas_acima_Q3.values
+        })
+        
+        # Exibir tabela sem índices
+        st.markdown(f"**{titulo}**")
+        st.table(tabela.style.hide(axis="index"))  # Oculta os índices
+
+    # Tabelas para cada métrica
+    col5, col6, col7 = st.columns(3)
+
+    with col5:
+        criar_tabela_metricas(df, 'energia_kwh', 'Energia (kWh)')
+
+    with col6:
+        criar_tabela_metricas(df, 'agua_m3', 'Água (m³)')
+
+    with col7:
+        criar_tabela_metricas(df, 'co2_emissoes', 'Emissões de CO₂')
+
+    # Dropdown para selecionar empresa
+    st.subheader("Detalhes por Empresa")
+    
+    # Lista de empresas acima do 3º quartil em pelo menos uma métrica
+    empresas_acima_Q3 = df[
+        (df['energia_kwh'] > df['energia_kwh'].quantile(0.75)) |
+        (df['agua_m3'] > df['agua_m3'].quantile(0.75)) |
+        (df['co2_emissoes'] > df['co2_emissoes'].quantile(0.75))
+    ]['empresa'].unique()
+
+    # Dropdown para selecionar empresa
+    empresa_selecionada = st.selectbox(
+        "Selecione uma empresa", 
+        empresas_acima_Q3,
+        key="dropdown_empresas"  # Adiciona uma chave única para o dropdown
+    )
+
+    # Filtrar dados da empresa selecionada
+    dados_empresa = df[df['empresa'] == empresa_selecionada]
+
+    # Calcular o 3º quartil para cada métrica
+    Q3_energia = "{:.2f}".format(df['energia_kwh'].quantile(0.75))
+    Q3_agua = "{:.2f}".format(df['agua_m3'].quantile(0.75))
+    Q3_co2 = "{:.2f}".format(df['co2_emissoes'].quantile(0.75))
+
+    # Criar tabela com consumo da empresa e valor de referência (3º quartil)
+    consumo_empresa = pd.DataFrame({
+        'Métrica': ['Energia (kWh)', 'Água (m³)', 'Emissões de CO₂'],
+        'Consumo da Empresa': [
+            "{:.2f}".format(dados_empresa['energia_kwh'].values[0]),
+            "{:.2f}".format(dados_empresa['agua_m3'].values[0]),
+            "{:.2f}".format(dados_empresa['co2_emissoes'].values[0])
+        ],
+        'Valor de Referência (3º Quartil)': [Q3_energia, Q3_agua, Q3_co2]
+    })
+
+    # Exibir tabela sem índices
+    st.write(f"Consumo da empresa **{empresa_selecionada}**:")
+    st.table(consumo_empresa.style.hide(axis="index"))  # Oculta os índices
 
     col5 = st.columns(1)
     st.subheader("Consumo Médio por Empresa por Setor")
