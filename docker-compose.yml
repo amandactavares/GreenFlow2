@@ -1,0 +1,18 @@
+version: "3.6"
+services:
+  api:
+    build: .
+    environment:
+      MONGO_URI: mongodb://db:27017
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db  
+  db:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes: #cat /etc/mongod.conf | grep dbPath --folder that contains the mongodb data
+      - ./data:/data/db # persist the data from the folder inside the container to the folder in the host (hostFolder:containerFolder)
+# volumes:
+#   mongo_data:  # Named volume defined here    
