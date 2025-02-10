@@ -13,4 +13,6 @@ services:
     ports:
       - "27017:27017"
     volumes: #cat /etc/mongod.conf | grep dbPath --folder that contains the mongodb data
-      - /var/lib/mongodb:/var/lib/mongodb # persist the data from the folder inside the container to the folder in the host (hostFolder:containerFolder)
+      - ./data:/data/db # persist the data from the folder inside the container to the folder in the host (hostFolder:containerFolder)
+# volumes:
+#   mongo_data:  # Named volume defined here    
