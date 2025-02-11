@@ -3,8 +3,8 @@ from pathlib import Path
 import pandas as pd
 import pyarrow.parquet as pq
 from pymongo import MongoClient
-from utils.clean import cleanDataSet
 import os
+from utils.clean import cleanDataSet
 
 # Configuração do banco de dados
 # MongoDB connection details
