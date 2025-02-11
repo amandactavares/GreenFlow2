@@ -24,10 +24,19 @@ with st.expander("Upload Ficheiro de Dados"):
         st.info("Escolha um Ficheiro")
         st.stop()
 
+    if uploaded_file is not None:
+        # Define the save path
+        save_path = f"./data_parquet/raw/{uploaded_file.name}"
+
+        # Write the file to the server
+        with open(save_path, "wb") as f:
+            f.write(uploaded_file.getbuffer())
+
+        st.success(f"File saved successfully: {save_path}")    
+
 
 #Criação dos Tabs
 tab1, tab2, tab3, tab4 = st.tabs(["Global", "Empresa", "Setor",  "Monitorização"])
-
 
 #Funções
 
