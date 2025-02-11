@@ -4,4 +4,9 @@ src/utils/__pycache__/clean.cpython-38.pyc
 src/__pycache__/api.cpython-38.pyc
 venv/
 data/
-data_parquet/
+data_parquet/processed/*
+data_parquet/raw/*
+data_parquet/staging/*
+!data_parquet/processed/.gitkeep
+!data_parquet/raw/.gitkeep
+!data_parquet/staging/.gitkeep
