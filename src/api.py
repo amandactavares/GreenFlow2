@@ -22,14 +22,16 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 app = FastAPI()
 
 # Pydantic model for request body
+base_path = os.getcwd() 
+extension = 'parquet'
 class ParquetFile(BaseModel):
-    file_name: Optional[str] = 'dados_sensores_5000.parquet'# This field is optional, default is 'dados_sensores_5000.parquet'
+    file_name: Optional[str] = 'dados_sensores_5000'# This field is optional, default is 'dados_sensores_5000.parquet'
 
 @app.get("/Summary")
 def readFileSummary(parquetfile: ParquetFile = Depends()):
     #Carregar DataSet
-    file_name = parquetfile.file_name    
-
+    file_name = os.path.join(base_path, 'data_parquet', 'raw', f"{parquetfile.file_name}.{extension}")    
+    print(file_name)
     # Read the Parquet file
     table = pq.read_table(file_name)
     # Get column names
@@ -60,7 +62,8 @@ def readFileSummary(parquetfile: ParquetFile = Depends()):
 @app.post("/parquettodb")
 def loadToDb(parquetfile: ParquetFile):
     #Carregar DataSet
-    file_name = parquetfile.file_name  
+    file_name = os.path.join(base_path, 'data_parquet', 'raw', f"{parquetfile.file_name}.{extension}")    
+    print(file_name)
 
     status = createTableFromParquet(file_name)    
     return status
@@ -68,8 +71,8 @@ def loadToDb(parquetfile: ParquetFile):
 @app.post("/cleanDataSet")
 def clean(parquetfile: ParquetFile):
     #Clean DataSet
-
-    file_name = parquetfile.file_name    
+    file_name = os.path.join(base_path, 'data_parquet', 'raw', f"{parquetfile.file_name}.{extension}")    
+    print(file_name)
 
     # Read the Parquet file
     table = pq.read_table(file_name)
