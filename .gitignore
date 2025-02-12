@@ -9,4 +9,5 @@ data_parquet/raw/*
 data_parquet/staging/*
 !data_parquet/processed/.gitkeep
 !data_parquet/raw/.gitkeep
+!data_parquet/raw/dados_sensores_5000.parquet
 !data_parquet/staging/.gitkeep
