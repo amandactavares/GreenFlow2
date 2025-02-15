@@ -8,7 +8,7 @@ import plotly.express as px
 #Configurações de Página
 st.set_page_config(layout="wide")
 
-#Título
+#Título da Página
 st.title("Consumos de Energia, Água e Emissões CO2")
 
 with st.expander("Upload Ficheiro de Dados"):
@@ -454,7 +454,7 @@ with tab3:
         tabela = pd.DataFrame({
             'Setor': media.index,
             'Média': media.values,
-            'Empresas Acima do 3º Quartil': empresas_acima_Q3.values
+            'Número de Empresas Acima do 3º Quartil': empresas_acima_Q3.values
         })
         
         # Exibir tabela sem índices
@@ -473,56 +473,58 @@ with tab3:
     with col7:
         criar_tabela_metricas(df, 'co2_emissoes', 'Emissões de CO₂')
 
-    # Dropdown para selecionar empresa
-    st.subheader("Detalhes por Empresa")
-    
-    # Lista de empresas acima do 3º quartil em pelo menos uma métrica
-    empresas_acima_Q3 = df[
-        (df['energia_kwh'] > df['energia_kwh'].quantile(0.75)) |
-        (df['agua_m3'] > df['agua_m3'].quantile(0.75)) |
-        (df['co2_emissoes'] > df['co2_emissoes'].quantile(0.75))
-    ]['empresa'].unique()
+    col8 = st.columns(1)
+    with st.expander("Detalhes de Consumos de Empresas Acima do 3º Quartil em Pelo Menos Uma Métrica"):
+        # Dropdown para selecionar empresa
+        st.subheader("Detalhes por Empresa")
+        
+        # Lista de empresas acima do 3º quartil em pelo menos uma métrica
+        empresas_acima_Q3 = df[
+            (df['energia_kwh'] > df['energia_kwh'].quantile(0.75)) |
+            (df['agua_m3'] > df['agua_m3'].quantile(0.75)) |
+            (df['co2_emissoes'] > df['co2_emissoes'].quantile(0.75))
+        ]['empresa'].unique()
 
-    # Dropdown para selecionar empresa
-    empresa_selecionada = st.selectbox(
-        "Selecione uma empresa", 
-        empresas_acima_Q3,
-        key="dropdown_empresas"  # Adiciona uma chave única para o dropdown
-    )
+        # Dropdown para selecionar empresa
+        empresa_selecionada = st.selectbox(
+            "Selecione uma empresa", 
+            empresas_acima_Q3,
+            key="dropdown_empresas"  # Adiciona uma chave única para o dropdown
+        )
 
-    # Filtrar dados da empresa selecionada
-    dados_empresa = df[df['empresa'] == empresa_selecionada]
+        # Filtrar dados da empresa selecionada
+        dados_empresa = df[df['empresa'] == empresa_selecionada]
 
-    # Calcular o 3º quartil para cada métrica
-    Q3_energia = "{:.2f}".format(df['energia_kwh'].quantile(0.75))
-    Q3_agua = "{:.2f}".format(df['agua_m3'].quantile(0.75))
-    Q3_co2 = "{:.2f}".format(df['co2_emissoes'].quantile(0.75))
+        # Calcular o 3º quartil para cada métrica
+        Q3_energia = "{:.2f}".format(df['energia_kwh'].quantile(0.75))
+        Q3_agua = "{:.2f}".format(df['agua_m3'].quantile(0.75))
+        Q3_co2 = "{:.2f}".format(df['co2_emissoes'].quantile(0.75))
 
-    # Criar tabela com consumo da empresa e valor de referência (3º quartil)
-    consumo_empresa = pd.DataFrame({
-        'Métrica': ['Energia (kWh)', 'Água (m³)', 'Emissões de CO₂'],
-        'Consumo da Empresa': [
-            "{:.2f}".format(dados_empresa['energia_kwh'].values[0]),
-            "{:.2f}".format(dados_empresa['agua_m3'].values[0]),
-            "{:.2f}".format(dados_empresa['co2_emissoes'].values[0])
-        ],
-        'Valor de Referência (3º Quartil)': [Q3_energia, Q3_agua, Q3_co2]
-    })
+        # Criar tabela com consumo da empresa e valor de referência (3º quartil)
+        consumo_empresa = pd.DataFrame({
+            'Métrica': ['Energia (kWh)', 'Água (m³)', 'Emissões de CO₂'],
+            'Consumo da Empresa': [
+                "{:.2f}".format(dados_empresa['energia_kwh'].values[0]),
+                "{:.2f}".format(dados_empresa['agua_m3'].values[0]),
+                "{:.2f}".format(dados_empresa['co2_emissoes'].values[0])
+            ],
+            'Valor de Referência (3º Quartil)': [Q3_energia, Q3_agua, Q3_co2]
+        })
 
-    # Exibir tabela sem índices
-    st.write(f"Consumo da empresa **{empresa_selecionada}**:")
-    st.table(consumo_empresa.style.hide(axis="index"))  # Oculta os índices
+        # Exibir tabela sem índices
+        st.write(f"Consumos da empresa **{empresa_selecionada}**:")
+        st.table(consumo_empresa.style.hide(axis="index"))  # Oculta os índices
 
-    col5 = st.columns(1)
+    col9 = st.columns(1)
     st.subheader("Consumo Médio por Empresa por Setor")
     consumo_setor_por_empresa(df)
 
-    col6, col7 = st.columns(2)
-    with col6:
+    col10, col11 = st.columns(2)
+    with col10:
         st.subheader("Setor com Maior Consumo Médio por Empresa")
         cons_set_max(df)
 
-    with col7:
+    with col11:
         st.subheader("Setor com Menor Consumo Médio por Empresa")
         cons_set_min(df)
 
